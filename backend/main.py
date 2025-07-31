@@ -606,7 +606,7 @@ def _create_slide_from_state(
 
 PDF_CONFIG = {
     "json_file": "RedV5.json",
-    "image_file": "mockImage.png",
+    "image_file": "assets/mockImage.png",
     "output_pdf": "RedV5_beta_slideshow.pdf",
     "font_file": "arial.ttf",
 }
@@ -634,7 +634,7 @@ def draw_skeleton_on_image(image: Image.Image, slide_data: dict) -> Image.Image:
 	Draws a stick-figure skeleton on top of the climbing wall image,
 	using joint positions and caption info from the slide data.
 	"""
-	head_texture = Image.open("climbermodelhead.jpg").convert("RGBA")
+	head_texture = Image.open("assets/climber_face").convert("RGBA")
 
 	frame = image.copy()
 	draw = ImageDraw.Draw(frame, "RGBA")
@@ -670,38 +670,22 @@ def draw_skeleton_on_image(image: Image.Image, slide_data: dict) -> Image.Image:
 	draw_line("r_hip", "r_knee", SKELETON_COLORS["leg"], 4)
 	draw_line("r_knee", "r_foot", SKELETON_COLORS["leg"], 4)
 
-	# --- Draw torso texture overlay ---
-	shirt_texture = Image.open("climber_shirt.png").convert("RGBA")
+	# --- Draw torso using lines between shoulders and hips ---
 	l_shoulder = skeleton.get("l_shoulder")
 	r_shoulder = skeleton.get("r_shoulder")
 	l_hip = skeleton.get("l_hip")
 	r_hip = skeleton.get("r_hip")
 
 	if l_shoulder and r_shoulder and l_hip and r_hip:
-		# Compute bounding box
-		left = int(min(l_shoulder["x"], l_hip["x"]))
-		right = int(max(r_shoulder["x"], r_hip["x"]))
-		top = int(min(l_shoulder["y"], r_shoulder["y"]))
-		bottom = int(max(l_hip["y"], r_hip["y"]))
-		width = right - left
-		height = bottom - top
+		# Connect shoulders
+		draw_line("l_shoulder", "r_shoulder", SKELETON_COLORS["torso"], 4)
+		# Connect hips
+		draw_line("l_hip", "r_hip", SKELETON_COLORS["torso"], 4)
+		# Connect left shoulder to left hip
+		draw_line("l_shoulder", "l_hip", SKELETON_COLORS["torso"], 4)
+		# Connect right shoulder to right hip
+		draw_line("r_shoulder", "r_hip", SKELETON_COLORS["torso"], 4)
 
-		# Resize shirt texture to fit the bounding box
-		resized_shirt = shirt_texture.resize((width, height)).copy()
-
-		# Make it 70% transparent
-		alpha = resized_shirt.getchannel("A").point(lambda p: int(p * 0.7))
-		resized_shirt.putalpha(alpha)
-
-		# Optional: Apply a rectangular or custom mask if needed
-		mask = Image.new("L", (width, height), 0)
-		mask_draw = ImageDraw.Draw(mask)
-		mask_draw.rectangle((0, 0, width, height), fill=255)
-
-		# Blend it into the frame
-		torso_region = frame.crop((left, top, right, bottom))
-		blended = Image.alpha_composite(torso_region, resized_shirt)
-		frame.paste(blended, (left, top))
 
 	# --- Draw the head on top of the torso ---
 	head_center = skeleton.get("head_center")

@@ -1,0 +1,24 @@
+{
+  "problem_name": "RedV5",
+  "wall": {
+    "scale": {
+      "pixelDistance": 410,
+      "realDistanceCm": 100
+    }
+  },
+  "climber": {
+    "heightCm": 170,
+    "armSpanCm": 170
+  },
+  "holds": [
+    { "id": "h0", "type": "regular", "position": { "x": 457, "y": 1133 } },
+    { "id": "h1", "type": "regular", "position": { "x": 674, "y": 1004 } },
+    { "id": "h2", "type": "start", "position": { "x": 466, "y": 770 } },
+    { "id": "h3", "type": "regular", "position": { "x": 449, "y": 571 } },
+    { "id": "h4", "type": "regular", "position": { "x": 711, "y": 569 } },
+    { "id": "h5", "type": "regular", "position": { "x": 560, "y": 476 } },
+    { "id": "h6", "type": "regular", "position": { "x": 401, "y": 388 } },
+    { "id": "h7", "type": "regular", "position": { "x": 469, "y": 261 } },
+    { "id": "h8", "type": "finish", "position": { "x": 679, "y": 59 } }
+  ]
+}
