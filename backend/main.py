@@ -634,7 +634,7 @@ def draw_skeleton_on_image(image: Image.Image, slide_data: dict) -> Image.Image:
 	Draws a stick-figure skeleton on top of the climbing wall image,
 	using joint positions and caption info from the slide data.
 	"""
-	head_texture = Image.open("assets/climber_face").convert("RGBA")
+	head_texture = Image.open("assets/climber_face.png").convert("RGBA")
 
 	frame = image.copy()
 	draw = ImageDraw.Draw(frame, "RGBA")
@@ -742,50 +742,64 @@ def draw_skeleton_on_image(image: Image.Image, slide_data: dict) -> Image.Image:
 
 	return frame
 
-def generate_pdf_slideshow():
+def generate_pdf_slideshow(problem: Problem, base_image: Image.Image, slides: List[dict], output_pdf_path: str) -> None:
     """
-    Generate a beta slideshow PDF using A* pathfinding from fixed input files.
-    Assumes RedV5.json and mockImage.png exist.
+    Save a series of skeleton-overlaid frames to a PDF file.
     """
-    print("\n--- Generating PDF Slideshow ---")
+    print(f"🖼 Generating PDF with {len(slides)} frames...")
 
-    # Load problem JSON
-    with open(PDF_CONFIG["json_file"], "r") as fh:
-        problem_data = json.load(fh)
-
-    # Load climbing wall background image
-    base_image = Image.open(PDF_CONFIG["image_file"]).convert("RGBA")
-
-    # Solve for optimal climbing beta path
-    problem = Problem.load_from_json(problem_data)
-    solver = AStarSolver(problem)
-    print("Solving for optimal beta route...")
-    path = solver.solve()
-
-    if not path:
-        print("❌ No solution found.")
-        return
-
-    print(f"✅ Found solution with {len(path)} steps. Rendering frames...")
-
-    # Generate skeleton overlay data for each step
-    slides = generate_visualization_data(problem, path)
     frames = [
         draw_skeleton_on_image(base_image, slide).convert("RGB")
         for slide in slides
     ]
 
-    # Save all frames to a PDF
     frames[0].save(
-        PDF_CONFIG["output_pdf"],
+        output_pdf_path,
         save_all=True,
         append_images=frames[1:],
         title=f"Beta Slideshow for {problem.problem_name}",
     )
 
-    print(f"✨ PDF saved to: {PDF_CONFIG['output_pdf']}")
-    print("--- Done ---")
+    print(f"✅ PDF saved to: {output_pdf_path}")
+
+
+from PIL import Image
+import os
+
+def run_beta_generation(data: dict):
+    """
+    Entrypoint for the Flask API to generate a climbing beta result.
+    Returns the list of slides (each with joint positions and a description).
+    Also generates a PDF using the skeleton overlays.
+    """
+    problem = Problem.load_from_json(data)
+    solver = AStarSolver(problem)
+    path = solver.solve()
+
+    if not path:
+        raise ValueError("No valid path found for this climbing problem.")
+
+    slides = generate_visualization_data(problem, path)
+
+    # Load original image (assuming it's saved and referenced in data)
+    image_path = "uploads/route.jpg"
+    if not image_path or not os.path.exists(image_path):
+        raise ValueError("Missing or invalid image path for PDF rendering.")
+
+    image = Image.open(image_path).convert("RGBA")
+
+    # Generate output PDF
+    pdf_output_path = f"outputs/{problem.problem_name}_slideshow.pdf"
+    os.makedirs("outputs", exist_ok=True)
+    generate_pdf_slideshow(problem, image, slides, pdf_output_path)
+
+    return {
+        "slides": slides,
+        "pdf_path": pdf_output_path
+    }
 
 
 if __name__ == "__main__":
-    generate_pdf_slideshow()
+    with open('Red.json', 'r') as f:
+        data = json.load(f)
+    run_beta_generation(data=data)

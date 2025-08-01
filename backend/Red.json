@@ -1,0 +1,87 @@
+{
+  "problem_name": "Redd",
+  "wall": {
+    "scale": {
+      "pixelDistance": 600,
+      "realDistanceCm": 100
+    }
+  },
+  "climber": {
+    "heightCm": 170,
+    "armSpanCm": 170
+  },
+  "holds": [
+    {
+      "id": "h0",
+      "type": "regular",
+      "position": {
+        "x": 587,
+        "y": 1549
+      }
+    },
+    {
+      "id": "h1",
+      "type": "regular",
+      "position": {
+        "x": 856,
+        "y": 1386
+      }
+    },
+    {
+      "id": "h2",
+      "type": "start",
+      "position": {
+        "x": 601,
+        "y": 1110
+      }
+    },
+    {
+      "id": "h3",
+      "type": "regular",
+      "position": {
+        "x": 598,
+        "y": 865
+      }
+    },
+    {
+      "id": "h4",
+      "type": "regular",
+      "position": {
+        "x": 900,
+        "y": 855
+      }
+    },
+    {
+      "id": "h5",
+      "type": "regular",
+      "position": {
+        "x": 736,
+        "y": 745
+      }
+    },
+    {
+      "id": "h6",
+      "type": "regular",
+      "position": {
+        "x": 531,
+        "y": 629
+      }
+    },
+    {
+      "id": "h7",
+      "type": "regular",
+      "position": {
+        "x": 612,
+        "y": 458
+      }
+    },
+    {
+      "id": "h10",
+      "type": "finish",
+      "position": {
+        "x": 892,
+        "y": 200
+      }
+    }
+  ]
+}

@@ -15,7 +15,6 @@ import {
   KeyboardAvoidingView,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Line } from 'react-native-svg';
 
 interface Hold {
@@ -53,6 +52,7 @@ export default function App() {
   const [climberArmSpan, setClimberArmSpan] = useState<string>('');
   const [isScaleMode, setIsScaleMode] = useState<boolean>(false);
   const [scalePoints, setScalePoints] = useState<Position[]>([]);
+  const [scaleFactor, setScaleFactor] = useState<{ x: number; y: number }>({ x: 1, y: 1 });
   
   const holdIdCounter = useRef<number>(0);
 
@@ -77,11 +77,18 @@ export default function App() {
       const maxHeight = screenHeight * 0.6; // Use up to 60% of screen height
       const ratio = Math.min(maxWidth / asset.width, maxHeight / asset.height);
       
-      setImageSize({ width: asset.width, height: asset.height });
-      setDisplaySize({ 
-        width: asset.width * ratio, 
-        height: asset.height * ratio 
+      const originalWidth = asset.width;
+      const originalHeight = asset.height;
+      const displayedWidth = originalWidth * ratio;
+      const displayedHeight = originalHeight * ratio;
+
+      setImageSize({ width: originalWidth, height: originalHeight });
+      setDisplaySize({ width: displayedWidth, height: displayedHeight });
+      setScaleFactor({
+        x: originalWidth / displayedWidth,
+        y: originalHeight / displayedHeight
       });
+
       setImage(asset.uri);
       setHolds([]);
       setScalePoints([]);
@@ -128,14 +135,14 @@ export default function App() {
       const rect = event.currentTarget.getBoundingClientRect();
       const clickX = event.clientX - rect.left;
       const clickY = event.clientY - rect.top;
-      x = (clickX * imageSize.width) / displaySize.width;
-      y = (clickY * imageSize.height) / displaySize.height;
+      x = clickX * scaleFactor.x;
+      y = clickY * scaleFactor.y;
     } else {
-      // Mobile (React Native)
       const { locationX, locationY } = event.nativeEvent;
-      x = (locationX * imageSize.width) / displaySize.width;
-      y = (locationY * imageSize.height) / displaySize.height;
+      x = locationX * scaleFactor.x;
+      y = locationY * scaleFactor.y;
     }
+
     
     if (isScaleMode) {
       const newPoint: Position = { x, y };
@@ -181,7 +188,7 @@ export default function App() {
 
   const generateBeta = async () => {
     if (!validateHolds()) return;
-    
+
     if (!problemName || !wallScale.pixelDistance || !wallScale.realDistanceCm || !climberHeight || !climberArmSpan) {
       Alert.alert('Missing Information', 'Please fill in all fields');
       return;
@@ -199,11 +206,56 @@ export default function App() {
         heightCm: parseInt(climberHeight),
         armSpanCm: parseInt(climberArmSpan)
       },
-      holds: holds
+      holds: holds.map(h => ({
+        id: h.id,
+        type: h.type,
+        position: {
+          x: h.position.x,
+          y: h.position.y
+        }
+      }))
     };
 
-    console.log('Sending to backend:', JSON.stringify(payload, null, 2));
-    Alert.alert('Success', 'Beta generation request sent! Check console for payload.');
+
+    if (!image) {
+      Alert.alert('Missing Image', 'Please upload an image.');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+
+      // 1. Append image as a file
+      formData.append('image', {
+        uri: image,
+        name: 'route.jpg',
+        type: 'image/jpeg',
+      } as any);
+
+      // 2. Append structured JSON payload as a string
+      formData.append('data', JSON.stringify(payload));
+
+      // React Native FormData does not support .entries(), so log manually
+      console.log("🧩 Sending Payload:", JSON.stringify(payload, null, 2));
+      console.log('📸 Image:', image);
+
+      const response = await fetch('http://192.168.1.111:5000/generate_beta', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const json = await response.json();
+
+      if (response.ok) {
+        Alert.alert('Success', 'Beta generated successfully!');
+        console.log('Result:', json.result);
+      } else {
+        Alert.alert('Error', json.error || 'Something went wrong');
+      }
+    } catch (error) {
+      console.error('Error sending data:', error);
+      Alert.alert('Network Error', 'Could not connect to server');
+    }
   };
 
   const MarkerTypeButton = ({ type }: { type: 'start' | 'regular' | 'finish' }) => (
