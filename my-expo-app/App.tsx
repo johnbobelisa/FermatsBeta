@@ -291,7 +291,7 @@ export default function App() {
             <Text className="text-white font-bold text-lg">F</Text>
           </View>
           <Text className="ml-3 text-2xl font-bold text-gray-900">
-            FermataBeta
+            FermatsBeta
           </Text>
         </View>
         <Text className="mt-3 text-gray-600 text-base">
