@@ -121,9 +121,21 @@ export default function App() {
   const handleImagePress = (event: any) => {
     if (!image) return;
 
-    const { locationX, locationY } = event.nativeEvent;
-    const x = (locationX * imageSize.width) / displaySize.width;
-    const y = (locationY * imageSize.height) / displaySize.height;
+    let x, y;
+    
+    // Handle web vs mobile differently
+    if (Platform.OS === 'web') {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const clickY = event.clientY - rect.top;
+      x = (clickX * imageSize.width) / displaySize.width;
+      y = (clickY * imageSize.height) / displaySize.height;
+    } else {
+      // Mobile (React Native)
+      const { locationX, locationY } = event.nativeEvent;
+      x = (locationX * imageSize.width) / displaySize.width;
+      y = (locationY * imageSize.height) / displaySize.height;
+    }
     
     if (isScaleMode) {
       const newPoint: Position = { x, y };
@@ -197,34 +209,40 @@ export default function App() {
   const MarkerTypeButton = ({ type }: { type: 'start' | 'regular' | 'finish' }) => (
     <TouchableOpacity
       onPress={() => setSelectedMarkerType(type)}
-      className={`flex-1 py-3 px-4 rounded-xl mx-1 ${
-        selectedMarkerType === type ? 'opacity-100' : 'opacity-70'
+      className={`flex-1 py-3 px-4 rounded-xl mx-1 border-2 ${
+        selectedMarkerType === type 
+          ? 'border-gray-900 shadow-sm' 
+          : 'border-gray-200'
       }`}
-      style={{ backgroundColor: getMarkerColor(type) }}
+      style={{ 
+        backgroundColor: selectedMarkerType === type ? getMarkerColor(type) : '#ffffff'
+      }}
     >
-      <Text className="text-white text-center font-medium capitalize">
+      <Text className={`text-center font-medium capitalize ${
+        selectedMarkerType === type ? 'text-white' : 'text-gray-700'
+      }`}>
         {type}
       </Text>
     </TouchableOpacity>
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <StatusBar barStyle="dark-content" backgroundColor="#f8fafc" />
+    <SafeAreaView className="flex-1 bg-gray-50">
+      <StatusBar barStyle="dark-content" backgroundColor="#f9fafb" />
       
-      {/* Navigation Bar */}
-      <View className="bg-white/80 border-b border-blue-100 px-6 py-4">
+      {/* Clean Header */}
+      <View className="bg-white border-b border-gray-100 px-6 py-6">
         <View className="flex-row items-center">
-          <LinearGradient
-            colors={['#2563eb', '#3b82f6']}
-            className="w-8 h-8 rounded-lg items-center justify-center"
-          >
-            <Text className="text-white font-bold text-sm">F</Text>
-          </LinearGradient>
-          <Text className="ml-3 text-xl font-bold text-blue-600">
+          <View className="w-10 h-10 bg-gray-900 rounded-xl items-center justify-center">
+            <Text className="text-white font-bold text-lg">F</Text>
+          </View>
+          <Text className="ml-3 text-2xl font-bold text-gray-900">
             FermataBeta
           </Text>
         </View>
+        <Text className="mt-3 text-gray-600 text-base">
+          Generate optimal climbing beta using advanced path optimization
+        </Text>
       </View>
 
       <KeyboardAvoidingView 
@@ -238,67 +256,48 @@ export default function App() {
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={{ paddingBottom: 40 }}
         >
-          {/* Hero Section */}
-          <LinearGradient
-            colors={['#1e3a8a', '#1e40af', '#2563eb']}
-            className="px-6 py-12"
-          >
-            <View className="max-w-3xl">
-              <Text className="text-3xl font-bold text-white mb-8">
-                Find Your Optimal Path
-              </Text>
-              <View className="space-y-6">
-                <View className="flex-row items-start">
-                  <View className="w-2 h-2 bg-blue-300 rounded-full mt-3 mr-4" />
-                  <Text className="text-white text-base leading-relaxed flex-1">
-                    <Text className="text-blue-200 font-semibold">Fermat's Principle:</Text> Light chooses the most efficient path through space
-                  </Text>
-                </View>
-                <View className="flex-row items-start">
-                  <View className="w-2 h-2 bg-blue-300 rounded-full mt-3 mr-4" />
-                  <Text className="text-white text-base leading-relaxed flex-1">
-                    <Text className="text-blue-200 font-semibold">Bouldering Beta:</Text> The optimal sequence of moves and body positions
-                  </Text>
-                </View>
-                <View className="flex-row items-start">
-                  <View className="w-2 h-2 bg-blue-300 rounded-full mt-3 mr-4" />
-                  <Text className="text-white text-base leading-relaxed flex-1">
-                    Our app finds the most efficient climbing path, just like light finds its optimal route!
-                  </Text>
-                </View>
-              </View>
-            </View>
-          </LinearGradient>
-
           {/* Main Content */}
           <View className="p-6">
-            <View className="items-center mb-12">
-              <Text className="text-2xl font-bold text-gray-800 mb-4">Route Marker</Text>
-              <Text className="text-gray-600 text-center leading-relaxed px-4">
-                Upload your climbing wall image and mark the holds to generate optimal beta
-              </Text>
-            </View>
-            
             {!image ? (
-              <TouchableOpacity
-                onPress={handleImageUpload}
-                className="bg-white border-2 border-blue-200 rounded-2xl p-12 items-center mb-8 mx-2"
-                style={{ borderStyle: 'dashed' }}
-              >
-                <View className="w-16 h-16 bg-blue-100 rounded-full items-center justify-center mb-6">
-                  <Text className="text-2xl">📷</Text>
+              <View className="mb-8">
+                <View className="text-center mb-8">
+                  <Text className="text-3xl font-bold text-gray-900 mb-3">Upload Route Image</Text>
+                  <Text className="text-gray-600 text-lg leading-relaxed px-4">
+                    Start by uploading an image of your climbing route
+                  </Text>
                 </View>
-                <Text className="text-gray-700 text-lg font-medium mb-2">
-                  Upload climbing wall image
-                </Text>
-                <Text className="text-gray-500 text-sm">
-                  JPG, PNG, or GIF • Max 10MB
-                </Text>
-              </TouchableOpacity>
+                
+                <TouchableOpacity
+                  onPress={handleImageUpload}
+                  className="bg-white border-2 border-gray-200 rounded-3xl p-16 items-center mb-8 mx-2 shadow-sm"
+                  style={{ borderStyle: 'dashed' }}
+                >
+                  <View className="w-20 h-20 bg-gray-100 rounded-2xl items-center justify-center mb-6">
+                    <Text className="text-3xl">📸</Text>
+                  </View>
+                  <Text className="text-gray-900 text-xl font-semibold mb-2">
+                    Choose Image
+                  </Text>
+                  <Text className="text-gray-500 text-base">
+                    JPG, PNG, or GIF • Max 10MB
+                  </Text>
+                </TouchableOpacity>
+              </View>
             ) : (
               <View className="mb-8">
-                <View className="relative bg-white rounded-2xl overflow-hidden shadow-lg border border-blue-100 self-center mb-8">
-                  <TouchableOpacity onPress={handleImagePress} activeOpacity={1}>
+                <View className="text-center mb-6">
+                  <Text className="text-2xl font-bold text-gray-900 mb-2">Mark Your Route</Text>
+                  <Text className="text-gray-600 text-base">
+                    Tap on holds to mark them, then fill in the details below
+                  </Text>
+                </View>
+                
+                <View className="relative bg-white rounded-3xl overflow-hidden shadow-lg border border-gray-100 self-center mb-8">
+                  <TouchableOpacity 
+                    onPress={handleImagePress} 
+                    activeOpacity={1}
+                    style={{ position: 'relative' }}
+                  >
                     <Image
                       source={{ uri: image }}
                       style={{ width: displaySize.width, height: displaySize.height }}
@@ -311,7 +310,7 @@ export default function App() {
                     <TouchableOpacity
                       key={hold.id}
                       onPress={() => removeHold(hold.id)}
-                      className="absolute w-5 h-5 rounded-full border-2 border-white"
+                      className="absolute w-5 h-5 rounded-full border-2 border-white shadow-md"
                       style={{
                         backgroundColor: getMarkerColor(hold.type),
                         left: (hold.position.x * displaySize.width) / imageSize.width - 10,
@@ -324,7 +323,7 @@ export default function App() {
                   {scalePoints.map((point, index) => (
                     <View
                       key={`scale-point-${index}`}
-                      className="absolute w-6 h-6 bg-amber-500 rounded-full border-2 border-white items-center justify-center"
+                      className="absolute w-6 h-6 bg-amber-500 rounded-full border-2 border-white items-center justify-center shadow-md"
                       style={{
                         left: (point.x * displaySize.width) / imageSize.width - 12,
                         top: (point.y * displaySize.height) / imageSize.height - 12,
@@ -356,58 +355,58 @@ export default function App() {
                 
                 <TouchableOpacity
                   onPress={handleImageUpload}
-                  className="bg-gray-600 py-4 px-8 rounded-xl self-center mb-8"
+                  className="bg-gray-100 py-4 px-8 rounded-2xl self-center mb-8 border border-gray-200"
                 >
-                  <Text className="text-white font-medium">Change Image</Text>
+                  <Text className="text-gray-700 font-medium">Change Image</Text>
                 </TouchableOpacity>
               </View>
             )}
 
             {image && (
-              <View className="space-y-8">
+              <View className="space-y-6">
                 {/* Scale Setting */}
-                <View className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
-                  <View className="flex-row items-center mb-6">
-                    <View className="w-2 h-2 bg-blue-500 rounded-full mr-3" />
-                    <Text className="text-lg font-semibold text-gray-800">Scale Setting</Text>
-                  </View>
+                <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <Text className="text-xl font-bold text-gray-900 mb-6">Scale Setting</Text>
                   
                   <TouchableOpacity
                     onPress={() => {
                       setIsScaleMode(!isScaleMode);
                       if (isScaleMode) {
-                        // Clear scale points when exiting scale mode
                         setScalePoints([]);
                       }
                     }}
-                    className={`py-4 px-6 rounded-xl mb-6 ${
-                      isScaleMode ? 'bg-amber-500' : 'bg-blue-500'
+                    className={`py-4 px-6 rounded-xl mb-6 border-2 ${
+                      isScaleMode 
+                        ? 'bg-amber-500 border-amber-500' 
+                        : 'bg-white border-gray-200'
                     }`}
                   >
-                    <Text className="text-white text-center font-medium">
+                    <Text className={`text-center font-semibold ${
+                      isScaleMode ? 'text-white' : 'text-gray-900'
+                    }`}>
                       {isScaleMode ? '✓ Exit Scale Mode' : '📏 Set Scale (Click 2 points)'}
                     </Text>
                   </TouchableOpacity>
                   
                   <View className="flex-row space-x-4">
                     <View className="flex-1">
-                      <Text className="text-gray-700 mb-3 font-medium">Pixel Distance</Text>
+                      <Text className="text-gray-700 mb-3 font-semibold">Pixel Distance</Text>
                       <TextInput
                         value={wallScale.pixelDistance}
                         onChangeText={(text) => setWallScale({...wallScale, pixelDistance: text})}
                         placeholder="410"
                         keyboardType="numeric"
-                        className="border border-gray-200 rounded-xl px-4 py-4 bg-white text-base"
+                        className="border border-gray-200 rounded-xl px-4 py-4 bg-gray-50 text-base font-medium"
                       />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-gray-700 mb-3 font-medium">Real Distance (cm)</Text>
+                      <Text className="text-gray-700 mb-3 font-semibold">Real Distance (cm)</Text>
                       <TextInput
                         value={wallScale.realDistanceCm}
                         onChangeText={(text) => setWallScale({...wallScale, realDistanceCm: text})}
                         placeholder="100"
                         keyboardType="numeric"
-                        className="border border-gray-200 rounded-xl px-4 py-4 bg-white text-base"
+                        className="border border-gray-200 rounded-xl px-4 py-4 bg-gray-50 text-base font-medium"
                       />
                     </View>
                   </View>
@@ -415,11 +414,8 @@ export default function App() {
 
                 {/* Marker Controls */}
                 {!isScaleMode && (
-                  <View className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
-                    <View className="flex-row items-center mb-6">
-                      <View className="w-2 h-2 bg-blue-500 rounded-full mr-3" />
-                      <Text className="text-lg font-semibold text-gray-800">Marker Type</Text>
-                    </View>
+                  <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <Text className="text-xl font-bold text-gray-900 mb-6">Hold Type</Text>
                     
                     <View className="flex-row mb-8 mx-1">
                       <MarkerTypeButton type="start" />
@@ -427,25 +423,25 @@ export default function App() {
                       <MarkerTypeButton type="finish" />
                     </View>
                     
-                    <View className="bg-gray-50 rounded-xl p-6">
+                    <View className="bg-gray-50 rounded-xl p-6 border border-gray-100">
                       <View className="flex-row justify-around">
                         <View className="items-center">
-                          <Text className="font-semibold text-emerald-600 text-lg">
+                          <Text className="font-bold text-emerald-600 text-xl">
                             {holds.filter(h => h.type === 'start').length}/2
                           </Text>
-                          <Text className="text-gray-600 text-sm mt-1">Start</Text>
+                          <Text className="text-gray-600 text-sm mt-1 font-medium">Start</Text>
                         </View>
                         <View className="items-center">
-                          <Text className="font-semibold text-blue-600 text-lg">
+                          <Text className="font-bold text-blue-600 text-xl">
                             {holds.filter(h => h.type === 'regular').length}
                           </Text>
-                          <Text className="text-gray-600 text-sm mt-1">Regular</Text>
+                          <Text className="text-gray-600 text-sm mt-1 font-medium">Regular</Text>
                         </View>
                         <View className="items-center">
-                          <Text className="font-semibold text-amber-600 text-lg">
+                          <Text className="font-bold text-amber-600 text-xl">
                             {holds.filter(h => h.type === 'finish').length}/1
                           </Text>
-                          <Text className="text-gray-600 text-sm mt-1">Finish</Text>
+                          <Text className="text-gray-600 text-sm mt-1 font-medium">Finish</Text>
                         </View>
                       </View>
                     </View>
@@ -453,41 +449,38 @@ export default function App() {
                 )}
 
                 {/* Problem Details */}
-                <View className="bg-white p-6 rounded-2xl shadow-sm border border-blue-100">
-                  <View className="flex-row items-center mb-6">
-                    <View className="w-2 h-2 bg-blue-500 rounded-full mr-3" />
-                    <Text className="text-lg font-semibold text-gray-800">Problem Details</Text>
-                  </View>
+                <View className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                  <Text className="text-xl font-bold text-gray-900 mb-6">Route Details</Text>
                   
                   <View className="mb-6">
-                    <Text className="text-gray-700 mb-3 font-medium">Problem Name</Text>
+                    <Text className="text-gray-700 mb-3 font-semibold">Route Name</Text>
                     <TextInput
                       value={problemName}
                       onChangeText={setProblemName}
                       placeholder="RedV5"
-                      className="border border-gray-200 rounded-xl px-4 py-4 bg-white text-base"
+                      className="border border-gray-200 rounded-xl px-4 py-4 bg-gray-50 text-base font-medium"
                     />
                   </View>
 
                   <View className="flex-row space-x-4">
                     <View className="flex-1">
-                      <Text className="text-gray-700 mb-3 font-medium">Climber Height (cm)</Text>
+                      <Text className="text-gray-700 mb-3 font-semibold">Height (cm)</Text>
                       <TextInput
                         value={climberHeight}
                         onChangeText={setClimberHeight}
                         placeholder="170"
                         keyboardType="numeric"
-                        className="border border-gray-200 rounded-xl px-4 py-4 bg-white text-base"
+                        className="border border-gray-200 rounded-xl px-4 py-4 bg-gray-50 text-base font-medium"
                       />
                     </View>
                     <View className="flex-1">
-                      <Text className="text-gray-700 mb-3 font-medium">Arm Span (cm)</Text>
+                      <Text className="text-gray-700 mb-3 font-semibold">Arm Span (cm)</Text>
                       <TextInput
                         value={climberArmSpan}
                         onChangeText={setClimberArmSpan}
                         placeholder="170"
                         keyboardType="numeric"
-                        className="border border-gray-200 rounded-xl px-4 py-4 bg-white text-base"
+                        className="border border-gray-200 rounded-xl px-4 py-4 bg-gray-50 text-base font-medium"
                       />
                     </View>
                   </View>
@@ -496,15 +489,12 @@ export default function App() {
                 {/* Generate Beta Button */}
                 <View className="mt-8 mb-12">
                   <TouchableOpacity onPress={generateBeta}>
-                    <LinearGradient
-                      colors={['#2563eb', '#1d4ed8']}
-                      className="py-5 px-8 rounded-2xl shadow-lg"
-                    >
+                    <View className="bg-gray-900 py-6 px-8 rounded-2xl shadow-lg">
                       <View className="flex-row items-center justify-center">
-                        <Text className="text-xl mr-3">🚀</Text>
-                        <Text className="text-white text-lg font-semibold">Generate Beta</Text>
+                        <Text className="text-2xl mr-3">🚀</Text>
+                        <Text className="text-white text-xl font-bold">Generate Beta</Text>
                       </View>
-                    </LinearGradient>
+                    </View>
                   </TouchableOpacity>
                 </View>
               </View>
