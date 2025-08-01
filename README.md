@@ -57,7 +57,7 @@ The name is inspired by **Fermat’s Principle** in physics — the idea that na
 - **Better Pathfinding**  
   Replace A* with a more nuanced strategy (e.g., reinforcement learning or movement-based heuristics) that accounts for body mechanics, energy use, and route complexity.
 
-- 🌐 **Web Interface**  
-  Allow hold input, beta generation, and visualization directly from a web browser.
+- **Web Interface**  
+  Allow hold input, beta generation, and visualization directly from a web browser and mobile app.
 
 ---
