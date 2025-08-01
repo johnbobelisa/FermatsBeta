@@ -4,7 +4,7 @@
 
 ## Demo
 
-![Demo of FermatsBeta](./demo_mobile.gif)
+![Demo of FermatsBeta](./demo_mobiile.gif)
 
 ---
 
