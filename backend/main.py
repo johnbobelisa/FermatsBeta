@@ -793,10 +793,7 @@ def run_beta_generation(data: dict):
     os.makedirs("outputs", exist_ok=True)
     generate_pdf_slideshow(problem, image, slides, pdf_output_path)
 
-    return {
-        "slides": slides,
-        "pdf_path": pdf_output_path
-    }
+    return pdf_output_path
 
 
 if __name__ == "__main__":

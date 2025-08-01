@@ -13,6 +13,7 @@ import {
   SafeAreaView,
   Platform,
   KeyboardAvoidingView,
+  Linking,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import Svg, { Line } from 'react-native-svg';
@@ -53,6 +54,8 @@ export default function App() {
   const [isScaleMode, setIsScaleMode] = useState<boolean>(false);
   const [scalePoints, setScalePoints] = useState<Position[]>([]);
   const [scaleFactor, setScaleFactor] = useState<{ x: number; y: number }>({ x: 1, y: 1 });
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
   
   const holdIdCounter = useRef<number>(0);
 
@@ -247,8 +250,7 @@ export default function App() {
       const json = await response.json();
 
       if (response.ok) {
-        Alert.alert('Success', 'Beta generated successfully!');
-        console.log('Result:', json.result);
+        setPdfUrl(`http://192.168.1.111:5000${json.pdf_url}`);
       } else {
         Alert.alert('Error', json.error || 'Something went wrong');
       }
@@ -549,6 +551,15 @@ export default function App() {
                     </View>
                   </TouchableOpacity>
                 </View>
+
+                {pdfUrl && (
+                  <TouchableOpacity onPress={() => Linking.openURL(pdfUrl)}>
+                    <View className="bg-emerald-600 py-4 px-6 rounded-2xl shadow-lg mt-4">
+                      <Text className="text-white text-lg font-bold text-center">Download PDF</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+
               </View>
             )}
           </View>

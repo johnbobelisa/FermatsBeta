@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 from main import run_beta_generation
 import os
@@ -13,20 +13,25 @@ def generate_beta():
         return jsonify({"error": "Missing image or data in request"}), 400
 
     try:
-        # 1. Save uploaded image
         image_file = request.files['image']
         filename = f"uploads/{image_file.filename}"
         os.makedirs("uploads", exist_ok=True)
         image_file.save(filename)
 
-        # 2. Parse JSON payload
         payload_json = request.form['data']
         data = json.loads(payload_json)
-        data["image_path"] = filename   
+        data["image_path"] = filename
 
-        # 3. Run generation logic
-        result = run_beta_generation(data)
-        return jsonify({"status": "success", "result": result})
+        result = run_beta_generation(data)  # Assume it returns path like 'outputs/RedV5_slideshow.pdf'
+        return jsonify({
+            "status": "success",
+            "result": result,
+            "pdf_url": f"/download_pdf/{os.path.basename(result)}"
+        })
     except Exception as e:
         print("Error during processing:", str(e))
         return jsonify({"error": str(e)}), 500
+
+@app.route('/download_pdf/<filename>', methods=['GET'])
+def download_pdf(filename):
+    return send_from_directory('outputs', filename, as_attachment=True)
