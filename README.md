@@ -23,14 +23,15 @@ The name is inspired by **Fermat’s Principle** in physics — the idea that na
 
 - **Pixel-to-Centimeter Scaling**  
   To estimate real-world distances, the user can:
-  - Place a reference object (e.g., A4 paper = 21 cm) on the wall.
-  - Measure its length in pixels via the app.
+  - Place a reference object (e.g., A4 paper = 21 cm) on the wall. Another example would be to stand near the wall and use your height! You can also use your climbing shoe!
+  - Measure its length in pixels via the app and enter the real length of your reference object. 
   - Let the app scale all hold coordinates accordingly.
 
 - **A\* Search Algorithm**  
   Finds the most efficient path from the starting holds to the finish hold(s), respecting climber reach and physical constraints like:
   - Feet stay below hands
   - No unnatural limb crossover
+  - Climber's height and wingspan
 
 - **PDF Report Generation**  
   Generates a PDF slideshow showing step-by-step joint positions and movement descriptions.
